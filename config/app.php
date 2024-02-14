@@ -159,6 +159,7 @@ return [
         /*
          * Package Service Providers...
          */
+        App\Providers\UtilsServiceProvider::class,
 
         /*
          * Application Service Providers...

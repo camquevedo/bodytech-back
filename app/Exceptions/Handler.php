@@ -3,6 +3,12 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Response;
+
+use App\Packages\ApiResponse\ApiResponseBuilder;
+use App\Exceptions\BaseException;
+
+use stdClass;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +32,27 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, \Throwable $exception)
+    {
+        $data = new stdClass();
+        $data->file = $exception->getFile();
+        $data->line = $exception->getLine();
+        $data->trace = $exception->getTrace();
+
+        if ($exception instanceof BaseException) {
+            return ApiResponseBuilder::builder()
+                ->withCode($exception->getResponseCode())
+                ->withMessage($exception->getResponseMessage())
+                ->withData($exception->getResponseContext())
+                ->build();
+        }
+
+        return ApiResponseBuilder::builder()
+            ->withCode(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->withMessage($exception->getMessage())
+            ->withData($data)
+            ->build();
     }
 }
